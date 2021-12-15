@@ -1,0 +1,69 @@
+version: "3.8"
+ 
+services:
+ 
+  mongo:
+   container_name: mongo
+   image: mongo:4.4
+   restart: always
+   environment:
+     TZ: "Indian/Christmas"
+     MONGO_INITDB_ROOT_USERNAME: "rudy"
+     MONGO_INITDB_ROOT_PASSWORD: "darymalinovky"
+   volumes:
+     - ./mongodata:/data/db
+   ports:
+     - 27017:27017
+  
+  emqx:
+   container_name: emqx
+   image: emqx/emqx:4.2.3
+   restart: always
+   ports:
+     - 18083:18083
+     - 1883:1883
+     - 8883:8883
+     - 8083:8083
+     - 8085:8081
+ 
+   links:
+     - mongo
+   environment:
+     EMQX_NAME: DaryMalinovky
+     EMQX_HOST: 34.67.113.110
+ 
+     TZ: "Indian/Christmas"
+ 
+     # MONGO CONNECTION
+     EMQX_AUTH__MONGO__TYPE: single
+     EMQX_AUTH__MONGO__SERVER: "mongo:27017"
+     EMQX_AUTH__MONGO__POOL: 8
+ 
+     EMQX_AUTH__MONGO__LOGIN: "rudy"
+     EMQX_AUTH__MONGO__PASSWORD: "darymalinovky"
+     EMQX_AUTH__MONGO__AUTH_SOURCE: admin
+ 
+     EMQX_AUTH__MONGO__DATABASE: "iotgl"
+     EMQX_AUTH__MONGO__AUTH_QUERY__COLLECTION: "emqxauthrules"
+ 
+     EMQX_AUTH__MONGO__SUPER_QUERY__COLLECTION: "emqxauthrules"
+     EMQX_AUTH__MONGO__SUPER_QUERY__SUPER_FIELD: "is_superuser"
+     EMQX_AUTH__MONGO__SUPER_QUERY__SELECTOR: "username=%u"
+     EMQX_AUTH__MONGO__SUPER_QUERY: "off"
+ 
+ 
+     EMQX_AUTH__MONGO__AUTH_QUERY__PASSWORD_HASH: plain
+     EMQX_AUTH__MONGO__AUTH_QUERY__PASSWORD_FIELD: "password"
+     EMQX_AUTH__MONGO__AUTH_QUERY__SELECTOR: "username=%u"
+ 
+     ## Enable ACL query.
+     #Access control list
+     EMQX_AUTH__MONGO__ACL_QUERY: "on"
+     EMQX_AUTH__MONGO__ACL_QUERY__COLLECTION: "emqxauthrules"
+     EMQX_AUTH__MONGO__ACL_QUERY__SELECTOR: "username=%u"
+ 
+     EMQX_LOADED_PLUGINS: "emqx_recon,emqx_retainer,emqx_management,emqx_dashboard, emqx_auth_mongo"
+ 
+ 
+ 
+     EMQX_ LISTENER__TCP__EXTERNAL__MAX_CONNECTIONS: 1000
